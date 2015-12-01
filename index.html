@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Demonstracao LFA</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+	<script>
+			// Alg para reconhecimento de palavras em um AFND
+
+		/*
+		  DESCRICAO ESTADOS
+		  Estado Inicial
+		  Estados Finais por espaco
+		  Estado atual, caractere lido, proximo estado
+
+		  DESCRICAO PALAVRAS
+		  Uma palavra por linha.
+		*/
+
+
+		var input_estados =
+		  "q0\n"+
+		  "q2\n"+
+		  "q0 a q1\n"+
+		  "q1 a q1\n"+
+		  "q1 b q1\n"+
+		  "q1 a q2\n";
+
+
+
+		var input_palavras = "ababa";
+
+		var debug = [];
+
+		// Le linhas
+		var estados = input_estados.split("\n");
+		// Remove ultima linha em branco
+		estados = estados.filter(function(e){return e}); 
+
+		// Separa por espacos
+		for(key in estados){
+		  estados[key] = estados[key].split(" ");
+		}
+		// Define estado inicial e estado final
+		var estado_inicial = estados.shift();
+		var estados_finais = estados.shift();
+		var tabela_transicao = estados;
+
+		var limpa_estados = function(input_estados){
+			debug = [];
+			// Le linhas
+			estados = input_estados.split("\n");
+			// Remove ultima linha em branco
+			estados = estados.filter(function(e){return e}); 
+				// Separa por espacos
+			for(key in estados){
+			  estados[key] = estados[key].split(" ");
+			}
+			// Define estado inicial e estado final
+			estado_inicial = estados.shift();
+			estados_finais = estados.shift();
+			tabela_transicao = estados;
+		}
+
+		// Le Palavras
+		var palavras = input_palavras.split("\n");
+		palavras = palavras.filter(function(e){return e}); 
+
+		var limpa_palavras = function(palavras){
+			// Le Palavras
+			palavras = input_palavras.split("\n");
+			palavras = palavras.filter(function(e){return e}); 
+		}
+
+		var validaLetra = function(e_atual, e_finais, transicoes, palavra, i_letra){
+		  // Se é o ultimo caractere e esta em um estado final
+		  if(e_finais.indexOf(e_atual) != -1 && i_letra == palavra.length){
+		    return true;
+		  }
+		  if(i_letra < palavra.length){
+		    var possiveis_estados  = [];
+		    for(key in transicoes){
+		      if(transicoes[key][0] == e_atual){
+		        if(transicoes[key][1] == palavra[i_letra]){
+		          possiveis_estados.push(transicoes[key][2]);
+		        }
+		      }
+		    }
+		    debug.push("Caractere lido: "+palavra[i_letra]);
+		    debug.push("Estados possiveis: "+possiveis_estados);
+		    for(key in possiveis_estados){
+		      debug.push("Movimento para: "+possiveis_estados[key]);
+		      var result = validaLetra(possiveis_estados[key], e_finais, transicoes, palavra, i_letra+1);
+		      if(result == true)
+		        return true;
+		    }
+		  }
+		  return false;
+		}
+
+
+		var validaPalavra = function(e_inicial, e_finais, transicoes, palavra){
+		  var e_atual = e_inicial[0];
+		  var i_palavra = 0;
+		  var contador = 100;
+		  var result = validaLetra(e_atual, e_finais, transicoes, palavra, i_palavra);
+		  if(result == true){
+		  	return true
+		  }else{
+			  return false;
+		  }
+		}
+
+
+		// CARREGA FUNCOES DA VIEW
+		$(document).on("ready",function(){
+			$("#input_automato").val(input_estados);
+			$("#input_palavra").val(input_palavras);
+			$("#validar").on("click",function(){
+				limpa_estados($("#input_automato").val());
+				var result = validaPalavra(estado_inicial,estados_finais,tabela_transicao, $("#input_palavra").val());
+				if(result == true){
+					result = "Cadeia Valida";
+				}else{
+					result = "Cadeia Invalida";
+				}
+				$("#resultado").empty();
+				$("#resultado").append("<p><b>"+result+"</b></p>");
+				$("#resultado").append("<h4>Debug: </h4>");
+				for(key in debug){
+					$("#resultado").append("<p>"+debug[key]+"</p>");
+				}
+			})
+		})
+
+	</script>
+
+
+</head>
+<body>
+	<h1>Validando um input dado um AFND</h1>
+	<h2>Automato</h2>
+	<textarea rows="10" cols="40" id="input_automato"> 
+	 At w3schools.com you will learn how to make a website. We offer free tutorials in all web development technologies. 
+	</textarea> 
+	<h2>Palavra a ser validada</h2>
+	<input type="text" id="input_palavra"></input>
+	<h2/>
+	<input type="button" value="Validar" id="validar" />
+	</h2>
+	<h2>Resultado:</h2>
+	<div id="resultado">
+	</div>
+</body>
+</html>
